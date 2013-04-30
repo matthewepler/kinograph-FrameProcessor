@@ -9,6 +9,7 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 
 import java.util.Arrays;
+import java.io.File;
 
 
 OpenCVPro opencv;
@@ -22,7 +23,17 @@ float medianAngle = 0;
 Point[] medianLine;
 
 void setup() {
-  src = loadImage("_MG_9553.JPG");
+  File dir = new File("/Users/matthewepler/Documents/ITP/_THESIS/Sequences/sequence2_04202013/originals");
+  if (dir.isDirectory()) 
+  {
+    for (File child : dir.listFiles()) 
+    {
+      println( child.getName() );
+    }
+  }
+  
+  
+  src = loadImage("_MG_9543.JPG");
   src.resize(500, 0);
   size(src.width*2, src.height);
   opencv = new OpenCVPro(this, src.width, src.height);
@@ -119,5 +130,5 @@ void draw() {
   drawContours(approximations);
   
   popMatrix();
-}
+  }
 

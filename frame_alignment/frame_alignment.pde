@@ -23,7 +23,7 @@ float medianAngle = 0;
 Point[] medianLine;
 
 void setup() {
-  File dir = new File("/Users/matthewepler/Documents/ITP/_THESIS/Sequences/sequence2_04202013/originals");
+  File dir = new File("/Users/matthewepler/Documents/ITP/_THESIS/Sequences/sequence6-title_05032013/originals");
   if (dir.isDirectory()) 
   {
     for (File child : dir.listFiles()) 
@@ -31,7 +31,12 @@ void setup() {
       println( child.getName() );
     }
   }
-  
+
+  // create PGraphics object
+  // fill it with the rotated image
+  // crop
+  // display in window?
+  // save in new dir  
   
   src = loadImage("_MG_9543.JPG");
   src.resize(500, 0);

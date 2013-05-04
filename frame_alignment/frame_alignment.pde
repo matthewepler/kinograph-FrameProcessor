@@ -11,7 +11,6 @@ import org.opencv.core.Point;
 import java.util.Arrays;
 import java.io.File;
 
-
 OpenCVPro opencv;
 PImage src, dst;
 
@@ -23,64 +22,69 @@ float medianAngle = 0;
 Point[] medianLine;
 
 void setup() {
-  File dir = new File("/Users/matthewepler/Documents/ITP/_THESIS/Sequences/sequence6-title_05032013/originals");
+  // choose source directory
+  File dir = new File("/Users/matthewepler/Documents/ITP/_THESIS/processing/kinograph-FrameProcessor/frame_alignment/data");
+    
   if (dir.isDirectory()) 
   {
     for (File child : dir.listFiles()) 
     {
-      println( child.getName() );
+      try
+      {
+      src = loadImage(child.getName());
+      println( "Loading " + child.getName() );
+      src.resize(500, 0);
+      size(src.width*2, src.height);
+      opencv = new OpenCVPro(this, src.width, src.height);
+      println( "OpenCVPro created" );
+      opencv.loadImage(src);
+      opencv.gray();
+      println( "gray complete" );
+      opencv.findSobelEdges(2, 0);
+      println( "findSobelEdges complete" );
+      opencv.threshold(150);
+      println( "threshold complete" );
+    
+      contours = new ArrayList<MatOfPoint>();
+      Imgproc.findContours(opencv.getBufferGray(), contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_NONE);
+      println( "findContours complete" );
+      approximations = createPolygonApproximations(filterContours(contours));
+      println( "approximations complete" );
+      float[] angles = new float[approximations.size()];
+      int i = 0;
+      for (MatOfPoint2f approx : approximations) {
+        Point[] points = approx.toArray();
+    
+        PVector p1 = new PVector((float)points[0].x, (float)points[0].y);
+        PVector p2 = new PVector((float)points[1].x, (float)points[1].y);
+    
+        PVector l = PVector.sub(p1, p2);
+        PVector vert = new PVector(0, 1);
+    
+        float a = PVector.angleBetween(l, vert);
+        angles[i] = a;
+        i++;
+      }
+    
+      medianLine = approximations.get(floor(angles.length/2)).toArray();
+      
+      Arrays.sort(angles);
+      println(angles);
+      medianAngle = angles[floor(angles.length/2)];
+      medianAngle = radians(180 - degrees(medianAngle));
+    
+      println("median angle: " + medianAngle);
+    
+      dst = createImage(src.width, src.height, ARGB);
+      opencv.toPImage(opencv.getBufferGray(), dst);
+      
+      println( child.getName() + " PROCESSING COMPLETED!" );
+      } catch (Exception e ) {
+        println( "*EXCEPTION*" );
+        println( e ); 
+      }
     }
   }
-
-  // create PGraphics object
-  // fill it with the rotated image
-  // crop
-  // display in window?
-  // save in new dir  
-  
-  src = loadImage("_MG_9543.JPG");
-  src.resize(500, 0);
-  size(src.width*2, src.height);
-  opencv = new OpenCVPro(this, src.width, src.height);
-
-  opencv.loadImage(src);
-  opencv.gray();
-
-  opencv.findSobelEdges(2, 0);
-  opencv.threshold(150);
-
-  contours = new ArrayList<MatOfPoint>();
-  Imgproc.findContours(opencv.getBufferGray(), contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_NONE);
-
-  approximations = createPolygonApproximations(filterContours(contours));
-
-  float[] angles = new float[approximations.size()];
-  int i = 0;
-  for (MatOfPoint2f approx : approximations) {
-    Point[] points = approx.toArray();
-
-    PVector p1 = new PVector((float)points[0].x, (float)points[0].y);
-    PVector p2 = new PVector((float)points[1].x, (float)points[1].y);
-
-    PVector l = PVector.sub(p1, p2);
-    PVector vert = new PVector(0, 1);
-
-    float a = PVector.angleBetween(l, vert);
-    angles[i] = a;
-    i++;
-  }
-
-  medianLine = approximations.get(floor(angles.length/2)).toArray();
-
-  Arrays.sort(angles);
-  println(angles);
-  medianAngle = angles[floor(angles.length/2)];
-  medianAngle = radians(180 - degrees(medianAngle));
-
-  println("median angle: " + medianAngle);
-
-  dst = createImage(src.width, src.height, ARGB);
-  opencv.toPImage(opencv.getBufferGray(), dst);
 }
 
 ArrayList<MatOfPoint> filterContours(ArrayList<MatOfPoint> cntrs) {

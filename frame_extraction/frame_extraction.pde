@@ -53,9 +53,9 @@ import org.opencv.core.Point;
 import java.awt.Rectangle;
 
 int resizedImageWidth = 500;
-int roiTop = 270;
+int roiTop = 200;
 int roiHeight = 300;
-int searchColumn = 70;
+int searchColumn = 440;
 int distanceBetweenSprockets = 32;
 int minVerticalEdgeLength = 175;
 
@@ -66,6 +66,7 @@ Rectangle selectedArea;
 
 ArrayList<MatOfPoint> contours;
 ArrayList<MatOfPoint2f> approximations;
+int counter = 1;
 
 class Sprocket {
   int top;
@@ -84,13 +85,13 @@ Rectangle roi;
 
 void setup() {
   // load source image and resize it
-  src = loadImage("_MG_9859.JPG");
+  src = loadImage("_MG_1264.JPG");
   src.resize(resizedImageWidth, 0);
 
   size(src.width*2, src.height);
 
   // setup ROI
-  roi = new Rectangle(0, roiTop, src.width, roiHeight);
+  roi = new Rectangle(0, roiTop, src.width , roiHeight);
 
   // create opencv object for finding top and
   // bottom of frame and load original image into it
@@ -120,7 +121,7 @@ void setup() {
   edgeProcessor.findSobelEdges(2, 0);
   edgeProcessor.threshold(150);
 
-  //Imgproc.dilate(opencv2.getBufferGray(), opencv2.getBufferGray(), new Mat());
+//  Imgproc.dilate(edgeProcessor.getBufferGray(), edgeProcessor.getBufferGray(), new Mat());
 
   // Convert processed sprocket image into a PImage
   // so we can do pixel operations on it
@@ -187,20 +188,23 @@ void setup() {
 
   // the x-positions of these two are the left and right edges
   // of the frame
-  float frameRight = (float)approximations.get(0).toArray()[0].x;
+  float frameRight = (float)approximations.get(2).toArray()[0].x;
+  println( frameRight );
   float frameLeft = (float)approximations.get(1).toArray()[0].x;
+  println( frameLeft );
 
   // === CALCULATE THE FRAME LOCATION and EXTRACT IT ===
   
   // make a rectangle starting at frameLeft and topSprocket.top
   // and extending the width and height of the frame
-  selectedArea = new Rectangle((int)frameLeft, topSprocket.top, (int)(frameRight-frameLeft), bottomSprocket.bottom-topSprocket.top);
+  selectedArea = new Rectangle((int)frameRight - 325, topSprocket.top - 45, 325, 300);
   // create a PImage for output and copy
   // the pixels from the source image into it.
   // NB: have to adjust the y-position down by the y-position of the ROI
   output = createImage(selectedArea.width, selectedArea.height, ARGB);
   output.copy(src, selectedArea.x, roi.y + selectedArea.y, selectedArea.width, selectedArea.height, 0,0,selectedArea.width, selectedArea.height);
-  
+  output.save( "output/frames" + counter + ".jpg" );
+  counter += 1;
   // convert edgeProcessor image into PImage for display (debugging only)
   dst2 = createImage(src.width, src.height, ARGB);
   edgeProcessor.toPImage(edgeProcessor.getBufferGray(), dst2);
@@ -246,11 +250,13 @@ void drawContours(ArrayList<MatOfPoint> cntrs) {
 
 void drawContours2f(ArrayList<MatOfPoint2f> cntrs) {
   for (MatOfPoint2f contour : cntrs) {
+    print( cntrs.indexOf( contour ) );
     beginShape();
     Point[] points = contour.toArray();
 
     for (int i = 0; i < points.length; i++) {
       vertex((float)points[i].x, (float)points[i].y);
+      println(  " = " + points[i].x + " : " +  points[i].y );
     }
     endShape(CLOSE);
   }
@@ -290,5 +296,7 @@ void draw() {
   strokeWeight(5);
   stroke(0, 255, 0);
   rect(selectedArea.x, selectedArea.y, selectedArea.width, selectedArea.height);
-}
+  
+  //println( mouseX );
+  }
 
